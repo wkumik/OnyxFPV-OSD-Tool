@@ -1,0 +1,148 @@
+<HTA:APPLICATION
+  ID="oSplash"
+  APPLICATIONNAME="OnyxFPV OSD Tool"
+  BORDER="none"
+  CAPTION="no"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  WINDOWSTATE="normal"
+  MAXIMIZEBUTTON="no"
+  MINIMIZEBUTTON="no"
+  SCROLL="no"
+  INNERBORDER="no"
+/>
+<html>
+<head>
+<title>OnyxFPV OSD Tool</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0a0a12;
+  font-family:'Segoe UI',sans-serif;
+  width:560px; height:460px;
+  overflow:hidden;
+  -ms-user-select:none;
+}
+#wrap {
+  position:relative;
+  width:560px; height:460px;
+}
+#gif-box {
+  display:block;
+  text-align:center;
+  padding-top:28px;
+}
+#gif {
+  width:260px; height:260px;
+  display:inline-block;
+}
+#title {
+  text-align:center;
+  font-size:18px;
+  font-weight:300;
+  letter-spacing:4px;
+  color:#cdd6f4;
+  margin-top:8px;
+}
+#sub {
+  text-align:center;
+  font-size:8px;
+  letter-spacing:6px;
+  color:#6c7086;
+  margin-top:6px;
+}
+#status {
+  position:absolute;
+  bottom:22px;
+  width:100%;
+  text-align:center;
+  font-size:9px;
+  color:#949cbb;
+}
+#track {
+  position:absolute;
+  bottom:0; left:0;
+  width:100%; height:2px;
+  background:#181825;
+}
+#fill {
+  height:2px;
+  background:#89b4fa;
+  width:0%;
+}
+#border {
+  position:absolute;
+  top:0; left:0;
+  width:559px; height:459px;
+  border:1px solid #31324880;
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="gif-box"><img id="gif" src="" /></div>
+  <div id="title">ONYXFPV</div>
+  <div id="sub">OSD TOOL</div>
+  <div id="status">Starting&hellip;</div>
+  <div id="track"><div id="fill"></div></div>
+  <div id="border"></div>
+</div>
+
+<script language="JScript">
+// ── Size and centre ──────────────────────────────────────────────────────────
+window.resizeTo(560, 460);
+window.moveTo(
+  Math.floor((screen.availWidth  - 560) / 2),
+  Math.floor((screen.availHeight - 460) / 2)
+);
+
+// ── Resolve paths ────────────────────────────────────────────────────────────
+var rawPath  = location.pathname.replace(/\//g, '\\').replace(/^\\/, '');
+var htaDir   = rawPath.substring(0, rawPath.lastIndexOf('\\'));
+var gifUrl   = 'file:///' + htaDir.replace(/\\/g, '/') + '/splash_anim.gif';
+document.getElementById('gif').src = gifUrl;
+
+var fso      = new ActiveXObject("Scripting.FileSystemObject");
+var shell    = new ActiveXObject("WScript.Shell");
+var sfPath   = shell.ExpandEnvironmentStrings("%TEMP%") + "\\onyxfpv_splash.txt";
+
+// ── Progress bar ─────────────────────────────────────────────────────────────
+var curProg = 0;
+var tgtProg = 0;
+
+function nudge() {
+  if (curProg < tgtProg) {
+    curProg = Math.min(tgtProg, curProg + Math.max(0.4, (tgtProg - curProg) * 0.08));
+  } else if (curProg < 97) {
+    curProg += 0.04;
+  }
+  document.getElementById('fill').style.width = curProg.toFixed(2) + '%';
+}
+setInterval(nudge, 33);
+
+// ── Status file polling ──────────────────────────────────────────────────────
+function poll() {
+  try {
+    if (!fso.FileExists(sfPath)) return;
+    var f    = fso.OpenTextFile(sfPath, 1, false, 0);
+    var text = f.ReadAll();
+    f.Close();
+
+    if (text.indexOf('CLOSE') === 0) {
+      window.close();
+      return;
+    }
+
+    var lines = text.split('\n');
+    var prog  = parseFloat(lines[0]);
+    var msg   = lines.length > 1 ? lines[1].replace(/\r/g,'') : '';
+
+    if (!isNaN(prog) && prog > tgtProg) tgtProg = prog;
+    if (msg) document.getElementById('status').innerText = msg;
+  } catch(e) {}
+}
+setInterval(poll, 150);
+</script>
+</body>
+</html>
