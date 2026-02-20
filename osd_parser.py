@@ -61,6 +61,7 @@ class FlightStats:
     min_rssi_pct:   Optional[int]   = None
     max_current_a:  Optional[float] = None
     used_mah:       Optional[int]   = None
+    efficiency:     Optional[str]   = None   # e.g. "45 mAh/km"
     blackbox_pct:   Optional[str]   = None
 
 
@@ -129,7 +130,9 @@ def _extract_stats(frame: OsdFrame) -> FlightStats:
 
     for r in range(GRID_ROWS):
         line = row_text(r)
-        if 'TOTAL' in line and 'ARM' in line:
+        if ('TOTAL' in line and 'ARM' in line) or \
+           ('FLY'   in line and 'TIME' in line) or \
+           ('FLIGHT' in line and 'TIME' in line):
             s.total_arm_time = _clean(after_colon(line)) or None
         elif 'MIN' in line and 'BATTERY' in line:
             try:
@@ -142,17 +145,20 @@ def _extract_stats(frame: OsdFrame) -> FlightStats:
                     float(_clean(after_colon(line)).replace('%', '').split()[0]))
             except Exception:
                 pass
-        elif 'MAX' in line and 'CURRENT' in line:
+        elif 'CURRENT' in line and 'MIN' not in line:
             try:
-                s.max_current_a = round(
-                    float(_clean(after_colon(line)).split()[0]), 2)
+                raw = _clean(after_colon(line)).split()[0].rstrip('aA')
+                s.max_current_a = round(float(raw), 2)
             except Exception:
                 pass
-        elif 'USED' in line and 'MAH' in line:
+        elif ('USED' in line and 'MAH' in line) or \
+             ('USED' in line and 'CAPACITY' in line):
             try:
                 s.used_mah = int(float(_clean(after_colon(line)).split()[0]))
             except Exception:
                 pass
+        elif 'EFF' in line:
+            s.efficiency = _clean(after_colon(line)) or None
         elif 'BLACKBOX' in line:
             s.blackbox_pct = _clean(after_colon(line)) or None
     return s
