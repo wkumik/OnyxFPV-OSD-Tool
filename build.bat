@@ -28,7 +28,8 @@ pyinstaller ^
     --name "VueOSD" ^
     --add-data "fonts;fonts" ^
     --add-data "icons;icons" ^
-    --icon "icon.ico" ^
+    --add-data "assets;assets" ^
+    --icon "assets\icon.ico" ^
     main.py
 
 echo.

@@ -7,7 +7,7 @@ set SFPATH=%TEMP%\vueosd_splash.txt
 :: ── Write initial status and launch HTA splash immediately ───────────────────
 echo 2>&1>"%SFPATH%" 5
 echo Starting^&hellip;>>"%SFPATH%"
-start "" mshta.exe "%~dp0splash.hta"
+start "" mshta.exe "%~dp0assets\splash.hta"
 
 :: ── Check for Python ──────────────────────────────────────────────────────────
 set PYTHON=

@@ -764,7 +764,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle(f"VueOSD v{VERSION} — Digital FPV OSD Tool")
         # App icon — resolved relative to this script so it works from any CWD
-        _icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.png")
+        _icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "icon.png")
         if os.path.exists(_icon_path):
             self.setWindowIcon(QIcon(_icon_path))
         self.setMinimumSize(1100, 700)
@@ -2396,7 +2396,7 @@ def main():
     app.setStyle("Fusion")
     app.setApplicationName("VueOSD")
     app.setOrganizationName("VueOSD")
-    _icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.png")
+    _icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "icon.png")
     if os.path.exists(_icon_path):
         app.setWindowIcon(QIcon(_icon_path))
 

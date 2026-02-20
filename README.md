@@ -93,9 +93,9 @@ fonts/               SneakyFPV OSD font packs
 
 ## Credits
 
-See [CREDITS.md](CREDITS.md) for full attribution — including SneakyFPV (fonts)
+See [CREDITS.md](docs/CREDITS.md) for full attribution — including SneakyFPV (fonts)
 and Walksnal (original OSD tool concept).
 
 ## Licence
 
-MIT — see [LICENSE.md](LICENSE.md)
+MIT — see [docs/LICENSE.md](docs/LICENSE.md)

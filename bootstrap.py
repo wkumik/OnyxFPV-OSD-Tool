@@ -127,7 +127,7 @@ def _run_with_splash():
     app.setStyle("Fusion")
     app.setApplicationName("VueOSD")
 
-    ico = os.path.join(HERE, "icon.png")
+    ico = os.path.join(HERE, "assets", "icon.png")
     if os.path.exists(ico):
         app.setWindowIcon(QIcon(ico))
 

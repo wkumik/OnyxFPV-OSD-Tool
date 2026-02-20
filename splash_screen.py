@@ -80,7 +80,7 @@ class SplashScreen(QWidget):
         self._frame_accum = 0    # accumulated ms since last frame advance
 
         gif_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "splash_anim.gif")
+                                "assets", "splash_anim.gif")
         if os.path.exists(gif_path):
             try:
                 from PIL import Image
@@ -102,7 +102,7 @@ class SplashScreen(QWidget):
             except Exception:
                 self._frames = []
 
-        ico = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.png")
+        ico = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "icon.png")
         if os.path.exists(ico):
             self.setWindowIcon(QIcon(ico))
 
