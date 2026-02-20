@@ -35,5 +35,5 @@ if ! "$VENV/bin/python" -c "import PyQt6, PIL, numpy" 2>/dev/null; then
     "$VENV/bin/python" -m pip install -r requirements.txt
 fi
 
-echo "Starting OnyxFPV OSD Tool..."
+echo "Starting VueOSD — Digital FPV OSD Tool..."
 exec "$VENV/bin/python" main.py

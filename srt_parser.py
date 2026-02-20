@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 """
-srt_parser.py  –  Parse OnyxFPV SRT telemetry subtitle files.
+srt_parser.py  –  Parse VueOSD SRT telemetry subtitle files.
 
 SRT files are standard subtitle files containing custom telemetry lines.
 From the Ruby firmware (rx_video_recording_data.cpp), the SRT content

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 """
-theme.py — Colour palette definitions for OnyxFPV OSD Tool.
+theme.py — Colour palette definitions for VueOSD.
 
 Edit this file manually, or use the in-app Theme Editor (palette icon in toolbar).
 Changes take effect immediately when you click Apply in the editor.

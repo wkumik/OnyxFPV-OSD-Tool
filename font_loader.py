@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 """
 font_loader.py  –  Discover and load OSD bitmap fonts from the bundled fonts/ directory.
 

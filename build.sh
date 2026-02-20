@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OnyxFPV OSD Tool — Linux / macOS standalone build
+# VueOSD — Digital FPV OSD Tool — Linux / macOS standalone build
 # Produces a single executable in dist/ that needs no Python installed.
 
 set -e
@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 VENV=".venv"
 
 echo "=================================================="
-echo " OnyxFPV OSD Tool — Build standalone binary"
+echo " VueOSD — Build standalone binary"
 echo "=================================================="
 echo ""
 
@@ -25,18 +25,18 @@ echo "Building..."
 pyinstaller \
     --onefile \
     --windowed \
-    --name "OnyxFPVOSDTool" \
+    --name "VueOSD" \
     --add-data "fonts:fonts" \
     --add-data "icons:icons" \
     --icon "icon.png" \
     main.py
 
 echo ""
-if [ -f "dist/OnyxFPVOSDTool" ]; then
-    echo "✓ Built: dist/OnyxFPVOSDTool"
+if [ -f "dist/VueOSD" ]; then
+    echo "✓ Built: dist/VueOSD"
     echo ""
-    echo "Place ffmpeg alongside OnyxFPVOSDTool, or ensure ffmpeg is on PATH."
-    echo "Distribute the dist/OnyxFPVOSDTool file — no Python needed on target machine."
+    echo "Place ffmpeg alongside VueOSD, or ensure ffmpeg is on PATH."
+    echo "Distribute the dist/VueOSD file — no Python needed on target machine."
 else
     echo "✗ Build failed — check output above."
     exit 1

@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 """
-OnyxFPV OSD Tool
+VueOSD — Digital FPV OSD Tool
 Parse and overlay MSP-OSD data onto FPV DVR video footage.
 """
 
-import sys, os, threading, subprocess, tempfile
+import sys, os, threading, subprocess, tempfile, json
 
 # ── Windows: set AppUserModelID so taskbar shows our icon, not Python's ───────
 if sys.platform == "win32":
     try:
         import ctypes
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("OnyxFPV.OSDTool.1")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("VueOSD.OSDTool.1")
     except Exception:
         pass
 
@@ -74,6 +74,42 @@ import theme as _theme_mod   # single source of truth for all colours
 
 _DARK_THEME = True   # module-level flag; toggled by the theme button
 
+# ─── Version & UI scale ───────────────────────────────────────────────────────
+
+VERSION = "1.0.0"
+
+_UI_SCALE = 1.0
+_SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings.json")
+
+def _fs(n: int) -> int:
+    """Scale a font size by the active UI scale factor."""
+    return max(6, int(n * _UI_SCALE))
+
+def _load_settings():
+    global _UI_SCALE
+    try:
+        with open(_SETTINGS_FILE) as f:
+            data = json.load(f)
+        _UI_SCALE = float(data.get("ui_scale", 1.0))
+    except Exception:
+        pass
+
+def _save_settings():
+    try:
+        data: dict = {}
+        try:
+            with open(_SETTINGS_FILE) as f:
+                data = json.load(f)
+        except Exception:
+            pass
+        data["ui_scale"] = _UI_SCALE
+        with open(_SETTINGS_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
+
+_load_settings()
+
 def _T() -> dict:
     """Return the active theme palette (reads live from theme.py)."""
     return _theme_mod.get_dark() if _DARK_THEME else _theme_mod.get_light()
@@ -89,7 +125,7 @@ def _build_styles():
 
     APP_STYLE = (
         f"QMainWindow,QWidget{{background:{t['bg']};color:{t['text']};"
-        f"font-family:'Segoe UI',Arial,sans-serif;font-size:12px;}}"
+        f"font-family:'Segoe UI',Arial,sans-serif;font-size:{_fs(12)}px;}}"
         f"QLabel{{color:{t['text']};}}"
         f"QCheckBox{{color:{t['text']};}}"
         f"QScrollArea{{border:none;}}"
@@ -98,13 +134,13 @@ def _build_styles():
     title_col = t['subtext'] if is_light else t['accent']
     GROUP_STYLE = (
         f"QGroupBox{{border:1px solid {t['border']};border-radius:8px;margin-top:8px;"
-        f"padding:6px;font-weight:bold;color:{title_col};font-size:11px;}}"
+        f"padding:6px;font-weight:bold;color:{title_col};font-size:{_fs(11)}px;}}"
         f"QGroupBox::title{{subcontrol-origin:margin;left:10px;padding:0 4px;}}"
     )
     PATH_EMPTY  = (f"background:{t['bg2']};color:{t['muted']};border:1px solid {t['border']};"
-                   f"border-radius:4px;padding:3px 8px;font-size:11px;")
+                   f"border-radius:4px;padding:3px 8px;font-size:{_fs(11)}px;")
     PATH_FILLED = (f"background:{t['bg2']};color:{t['text']};border:1px solid {t['border2']};"
-                   f"border-radius:4px;padding:3px 8px;font-size:11px;")
+                   f"border-radius:4px;padding:3px 8px;font-size:{_fs(11)}px;")
 
     # Light theme: buttons use a thin border so they read against the near-white bg
     # without being dark slabs. Dark theme: no border needed (surfaces contrast enough).
@@ -113,7 +149,7 @@ def _build_styles():
 
     BTN_SEC  = (f"QPushButton{{background:{t['surface']};color:{t['text']};"
                 f"border:{btn_border};border-radius:6px;"
-                f"padding:3px 10px;font-size:11px;}}"
+                f"padding:3px 10px;font-size:{_fs(11)}px;}}"
                 f"QPushButton:hover{{background:{t['surface2']};border:{btn_border_hov};}}"
                 f"QPushButton:pressed{{background:{t['surface3']};}}"
                 f"QPushButton:disabled{{background:{t['bg']};color:{t['muted']};"
@@ -137,23 +173,23 @@ def _build_styles():
          f"QPushButton:disabled{{background:{t['surface']};color:{t['muted']};}}")
     )
     BTN_PLAY = (f"QPushButton{{background:{t['surface']};color:{t['text']};"
-                f"border:{btn_border};border-radius:8px;font-size:15px;}}"
+                f"border:{btn_border};border-radius:8px;font-size:{_fs(15)}px;}}"
                 f"QPushButton:hover{{background:{t['surface2']};border:{btn_border_hov};}}"
                 f"QPushButton:pressed{{background:{t['accent']};color:#ffffff;}}"
                 f"QPushButton:disabled{{background:{t['bg']};color:{t['muted']};"
                 f"border:1px solid {t['border']};}}")
     BTN_STOP  = (f"QPushButton{{background:{t['red']};color:#ffffff;"
-                 f"border:none;border-radius:8px;font-size:16px;font-weight:bold;}}"
+                 f"border:none;border-radius:8px;font-size:{_fs(16)}px;font-weight:bold;}}"
                  f"QPushButton:hover{{background:{t['red']}dd;}}"
                  f"QPushButton:pressed{{background:{t['red']};}}"
                  f"QPushButton:disabled{{background:{t['surface']};color:{t['muted']};"
                  f"border:1px solid {t['border']};}}")
     BTN_DANGER = (f"QPushButton{{background:{t['surface']};color:{t['red']};"
-                  f"border:{btn_border};border-radius:6px;font-weight:bold;font-size:11px;}}"
+                  f"border:{btn_border};border-radius:6px;font-weight:bold;font-size:{_fs(11)}px;}}"
                   f"QPushButton:hover{{background:{t['red']};color:#ffffff;border:none;}}")
     COMBO_STYLE = (f"QComboBox{{background:{t['surface']};color:{t['text']};"
                    f"border:1px solid {t['border2']};"
-                   f"border-radius:4px;padding:3px 8px;font-size:11px;}}"
+                   f"border-radius:4px;padding:3px 8px;font-size:{_fs(11)}px;}}"
                    f"QComboBox::drop-down{{border:none;padding-right:6px;}}"
                    f"QComboBox QAbstractItemView{{background:{t['bg']};color:{t['text']};"
                    f"selection-background-color:{t['surface2']};border:1px solid {t['border2']};}}")
@@ -162,7 +198,7 @@ def _build_styles():
                     f"margin:-5px 0;border-radius:7px;}}"
                     f"QSlider::sub-page:horizontal{{background:{t['accent']};border-radius:2px;}}")
     PROG_STYLE  = (f"QProgressBar{{background:{t['surface']};border-radius:4px;text-align:center;"
-                   f"color:{t['text']};font-size:11px;}}"
+                   f"color:{t['text']};font-size:{_fs(11)}px;}}"
                    f"QProgressBar::chunk{{background:qlineargradient(x1:0,y1:0,x2:1,y2:0,"
                    f"stop:0 {t['accent']},stop:1 {t['accent2']});border-radius:4px;}}")
 
@@ -558,25 +594,26 @@ class RangeSelector(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         tx, ty, tw, th = self._track_rect()
+        t = _T()
 
-        # Full track (dark)
+        # Full track
         p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QColor("#313244"))
+        p.setBrush(QColor(t['surface']))
         p.drawRoundedRect(tx, ty, tw, th, 3, 3)
 
-        # Active region (blue)
+        # Active region
         x1 = self._handle_x(self._in)
         x2 = self._handle_x(self._out)
-        p.setBrush(QColor("#89b4fa"))
+        p.setBrush(QColor(t['accent']))
         p.drawRect(x1, ty, x2 - x1, th)
 
         # Handles
         hw = self.HANDLE_W
         for pct, label in ((self._in, "I"), (self._out, "O")):
             hx, hy, hwidth, hheight = self._handle_rect(pct)
-            p.setBrush(QColor("#cdd6f4"))
+            p.setBrush(QColor(t['text']))
             p.drawRoundedRect(hx, hy, hwidth, hheight, 3, 3)
-            p.setPen(QColor("#1e1e2e"))
+            p.setPen(QColor(t['bg']))
             p.setFont(QFont("Segoe UI", 6, QFont.Weight.Bold))
             p.drawText(hx, hy, hwidth, hheight,
                        Qt.AlignmentFlag.AlignCenter, label)
@@ -712,7 +749,7 @@ class MainWindow(QMainWindow):
         self._play_timer.timeout.connect(self._play_tick)
         self._playing      = False
 
-        self.setWindowTitle("OnyxFPV OSD Tool")
+        self.setWindowTitle(f"VueOSD v{VERSION} — Digital FPV OSD Tool")
         # App icon — resolved relative to this script so it works from any CWD
         _icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.png")
         if os.path.exists(_icon_path):
@@ -751,7 +788,7 @@ class MainWindow(QMainWindow):
         hdr_row.setContentsMargins(0, 0, 0, 0)
         hdr_row.setSpacing(8)
 
-        h1 = QLabel("OnyxFPV OSD")
+        h1 = QLabel("VueOSD")
         h1.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
         h1.setStyleSheet(f"color:{_T()['text']};")
         self._h1 = h1
@@ -784,10 +821,30 @@ class MainWindow(QMainWindow):
         hdr_row.addWidget(self._theme_btn)
         ll.addLayout(hdr_row)
 
-        h2 = QLabel("MSP-OSD overlay for FPV DVR video")
-        h2.setStyleSheet(f"color:{_T()['muted']};font-size:10px;margin-bottom:2px;")
+        h2 = QLabel("Digital FPV OSD Tool")
+        h2.setStyleSheet(f"color:{_T()['muted']};font-size:{_fs(10)}px;margin-bottom:2px;")
         self._h2 = h2
         ll.addWidget(h2)
+
+        # ── UI Scale selector ─────────────────────────────────────────────────
+        scale_row = QHBoxLayout()
+        scale_row.setContentsMargins(0, 2, 0, 0)
+        scale_row.setSpacing(6)
+        scale_lbl = QLabel("UI Scale")
+        scale_lbl.setStyleSheet(f"color:{_T()['muted']};font-size:{_fs(10)}px;")
+        self._scale_lbl = scale_lbl
+        self._scale_cb = QComboBox()
+        self._scale_cb.addItems(["100%", "125%", "150%", "175%"])
+        _scale_vals = [1.0, 1.25, 1.5, 1.75]
+        _scale_idx = min(range(len(_scale_vals)), key=lambda i: abs(_scale_vals[i] - _UI_SCALE))
+        self._scale_cb.setCurrentIndex(_scale_idx)
+        self._scale_cb.setFixedWidth(72)
+        self._scale_cb.setStyleSheet(COMBO_STYLE)
+        self._scale_cb.currentIndexChanged.connect(self._on_scale_changed)
+        scale_row.addWidget(scale_lbl)
+        scale_row.addWidget(self._scale_cb)
+        scale_row.addStretch()
+        ll.addLayout(scale_row)
 
         # ── Files group ───────────────────────────────────────────────────────
         fg = QGroupBox("Files")
@@ -857,13 +914,13 @@ class MainWindow(QMainWindow):
         self.hd_check.setChecked(True)
         self.hd_check.setStyleSheet(f"color:{_T()['text']};font-size:11px;")
         self.hd_check.stateChanged.connect(self._reload_font)
-        custom_btn = QPushButton("Custom…")
-        custom_btn.setStyleSheet(BTN_SEC)
-        custom_btn.setFixedHeight(26)
-        custom_btn.clicked.connect(self._custom_font)
+        self._custom_btn = QPushButton("Custom…")
+        self._custom_btn.setStyleSheet(BTN_SEC)
+        self._custom_btn.setFixedHeight(26)
+        self._custom_btn.clicked.connect(self._custom_font)
         hd_row.addWidget(self.hd_check)
         hd_row.addStretch()
-        hd_row.addWidget(custom_btn)
+        hd_row.addWidget(self._custom_btn)
         fontgl.addLayout(hd_row)
 
         self.font_lbl = QLabel("No font loaded")
@@ -950,16 +1007,16 @@ class MainWindow(QMainWindow):
         self.trim_out_lbl = QLabel("Out: —")
         for lb in (self.trim_in_lbl, self.trim_out_lbl):
             lb.setStyleSheet(f"color:{_T()['subtext']};font-size:10px;font-weight:bold;")
-        trim_rst = QPushButton("✕")
-        trim_rst.setFixedSize(20, 20)
-        trim_rst.setStyleSheet(BTN_SEC)
-        trim_rst.setToolTip("Reset trim to full video")
-        trim_rst.clicked.connect(self._trim_reset)
+        self._trim_rst_btn = QPushButton("✕")
+        self._trim_rst_btn.setFixedSize(20, 20)
+        self._trim_rst_btn.setStyleSheet(BTN_SEC)
+        self._trim_rst_btn.setToolTip("Reset trim to full video")
+        self._trim_rst_btn.clicked.connect(self._trim_reset)
         trim_hdr.addWidget(trim_lbl)
         trim_hdr.addWidget(self.trim_in_lbl)
         trim_hdr.addStretch()
         trim_hdr.addWidget(self.trim_out_lbl)
-        trim_hdr.addWidget(trim_rst)
+        trim_hdr.addWidget(self._trim_rst_btn)
         cl.addLayout(trim_hdr)
 
         self.trim_sel = RangeSelector()
@@ -985,17 +1042,16 @@ class MainWindow(QMainWindow):
         self.play_btn.setToolTip("Play / Pause")
         self.play_btn.clicked.connect(self._play_toggle)
 
-        ref_btn = QPushButton("Refresh Preview")
-        ref_btn.setFixedHeight(34)
-        ref_btn.setMinimumWidth(120)
-        ref_btn.setStyleSheet(BTN_SEC)
-        ref_btn.clicked.connect(self._refresh_preview)
-
+        self._ref_btn = QPushButton("Refresh Preview")
+        self._ref_btn.setFixedHeight(34)
+        self._ref_btn.setMinimumWidth(120)
+        self._ref_btn.setStyleSheet(BTN_SEC)
+        self._ref_btn.clicked.connect(self._refresh_preview)
 
         play_row.addWidget(self.restart_btn)
         play_row.addWidget(self.play_btn)
         play_row.addStretch()
-        play_row.addWidget(ref_btn)
+        play_row.addWidget(self._ref_btn)
         cl.addLayout(play_row)
 
         # ── Smashicons credit ─────────────────────────────────────────────────
@@ -1032,11 +1088,11 @@ class MainWindow(QMainWindow):
             sl.valueChanged.connect(self._queue_preview)
             posgl.addWidget(sl)
 
-        rst = QPushButton("↺  Reset")
-        rst.setStyleSheet(BTN_SEC)
-        rst.setFixedHeight(26)
-        rst.clicked.connect(self._reset_pos)
-        posgl.addWidget(rst)
+        self._rst_pos_btn = QPushButton("↺  Reset")
+        self._rst_pos_btn.setStyleSheet(BTN_SEC)
+        self._rst_pos_btn.setFixedHeight(26)
+        self._rst_pos_btn.clicked.connect(self._reset_pos)
+        posgl.addWidget(self._rst_pos_btn)
 
         below.addWidget(posg, 2)
 
@@ -1422,6 +1478,13 @@ class MainWindow(QMainWindow):
 
     # ── Theme ─────────────────────────────────────────────────────────────────
 
+    def _on_scale_changed(self, idx: int):
+        global _UI_SCALE
+        _UI_SCALE = [1.0, 1.25, 1.5, 1.75][idx]
+        _build_styles()
+        self._apply_theme()
+        _save_settings()
+
     def _toggle_theme(self):
         global _DARK_THEME
         _DARK_THEME = not _DARK_THEME
@@ -1463,8 +1526,10 @@ class MainWindow(QMainWindow):
             f"QPushButton{{background:transparent;border:none;border-radius:15px;}}"
             f"QPushButton:hover{{background:{t['surface']};}}"
         )
+        self._h1.setFont(QFont("Segoe UI", _fs(16), QFont.Weight.Bold))
         self._h1.setStyleSheet(f"color:{t['text']};")
-        self._h2.setStyleSheet(f"color:{t['muted']};font-size:10px;margin-bottom:2px;")
+        self._h2.setStyleSheet(f"color:{t['muted']};font-size:{_fs(10)}px;margin-bottom:2px;")
+        self._scale_lbl.setStyleSheet(f"color:{t['muted']};font-size:{_fs(10)}px;")
 
         self._left_scroll.setStyleSheet(
             f"QScrollArea{{border:none;background:transparent;}}"
@@ -1480,7 +1545,7 @@ class MainWindow(QMainWindow):
         for cb in self.findChildren(QComboBox):
             cb.setStyleSheet(COMBO_STYLE)
         for ck in self.findChildren(QCheckBox):
-            ck.setStyleSheet(f"color:{t['text']};font-size:11px;")
+            ck.setStyleSheet(f"color:{t['text']};font-size:{_fs(11)}px;")
         for div in getattr(self, '_dividers', []):
             div.setStyleSheet(f"color:{t['border']};")
 
@@ -1502,6 +1567,13 @@ class MainWindow(QMainWindow):
         self.stop_btn.setStyleSheet(BTN_STOP)
         self.restart_btn.setStyleSheet(BTN_PLAY)
         self.play_btn.setStyleSheet(BTN_PLAY)
+        self._custom_btn.setStyleSheet(BTN_SEC)
+        self._ref_btn.setStyleSheet(BTN_SEC)
+        self._rst_pos_btn.setStyleSheet(BTN_SEC)
+        self._trim_rst_btn.setStyleSheet(BTN_SEC)
+        self.mode_crf_btn.setStyleSheet(BTN_SEC)
+        self.mode_mbps_btn.setStyleSheet(BTN_SEC)
+        self.trim_sel.update()
 
         # SpinBox
         self.mbps_spin.setStyleSheet(
@@ -1516,11 +1588,11 @@ class MainWindow(QMainWindow):
 
         # Inline subtext labels (constructed with hardcoded colours at init time)
         for lbl, style in [
-            (self.frame_info,  f"color:{t['muted']};font-size:10px;"),
-            (self.size_hint,   f"color:{t['muted']};font-size:10px;"),
-            (self.status,      f"color:{t['muted']};font-size:10px;"),
-            (self.frame_lbl,   f"color:{t['text']};font-size:11px;font-weight:bold;"),
-            (self.osd_warn,    f"color:{t['orange']};font-size:10px;"),
+            (self.frame_info,  f"color:{t['muted']};font-size:{_fs(10)}px;"),
+            (self.size_hint,   f"color:{t['muted']};font-size:{_fs(10)}px;"),
+            (self.status,      f"color:{t['muted']};font-size:{_fs(10)}px;"),
+            (self.frame_lbl,   f"color:{t['text']};font-size:{_fs(11)}px;font-weight:bold;"),
+            (self.osd_warn,    f"color:{t['orange']};font-size:{_fs(10)}px;"),
         ]:
             lbl.setStyleSheet(style)
 
@@ -1529,14 +1601,14 @@ class MainWindow(QMainWindow):
         if "green" not in fl_ss and t['green'] not in fl_ss:
             # still in initial/error state — use orange (no font) or current red
             if "red" not in fl_ss and t['red'] not in fl_ss:
-                self.font_lbl.setStyleSheet(f"color:{t['orange']};font-size:10px;")
+                self.font_lbl.setStyleSheet(f"color:{t['orange']};font-size:{_fs(10)}px;")
 
         # hw_lbl — preserve detected GPU green, only reset if still pending/absent
         hw_text = self.hw_lbl.text()
         if hw_text.startswith("Detecting") or hw_text.startswith("No GPU") or hw_text == "":
-            self.hw_lbl.setStyleSheet(f"color:{t['muted']};font-size:10px;")
+            self.hw_lbl.setStyleSheet(f"color:{t['muted']};font-size:{_fs(10)}px;")
         elif hw_text.startswith("✓"):
-            self.hw_lbl.setStyleSheet(f"color:{t['green']};font-size:10px;")
+            self.hw_lbl.setStyleSheet(f"color:{t['green']};font-size:{_fs(10)}px;")
 
         self._refresh_preview()
 
@@ -2031,7 +2103,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Missing", "Choose output location."); return
         if not find_ffmpeg():
             QMessageBox.critical(self, "FFmpeg Missing",
-                "FFmpeg not found.\n\nRun 'OnyxFPV OSD Tool.bat' to install it automatically,\n"
+                "FFmpeg not found.\n\nRun 'VueOSD.bat' to install it automatically,\n"
                 "or install manually from https://www.gyan.dev/ffmpeg/builds/")
             return
 
@@ -2241,8 +2313,8 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    app.setApplicationName("OnyxFPV OSD Tool")
-    app.setOrganizationName("OnyxFPV")
+    app.setApplicationName("VueOSD")
+    app.setOrganizationName("VueOSD")
     _icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.png")
     if os.path.exists(_icon_path):
         app.setWindowIcon(QIcon(_icon_path))

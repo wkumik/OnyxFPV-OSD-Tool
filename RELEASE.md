@@ -3,7 +3,7 @@
 ## 1. Create the repository
 
 1. Go to https://github.com/new
-2. **Repository name:** `onyxfpv-osd-tool`
+2. **Repository name:** `Digital-FPV-OSD-Tool`
 3. **Description:** `MSP-OSD overlay tool for FPV DVR video — Betaflight / INAV / Ardupilot`
 4. Set to **Public**
 5. ✅ Add a README ← uncheck this (we have our own)
@@ -14,10 +14,10 @@
 
 ## 2. Prepare your local folder
 
-Open a terminal (cmd or PowerShell) in the `onyxfpv-osd-tool` folder:
+Open a terminal (cmd or PowerShell) in the `Digital-FPV-OSD-Tool` folder:
 
 ```bat
-cd "C:\path\to\onyxfpv-osd-tool"
+cd "C:\path\to\Digital-FPV-OSD-Tool"
 git init
 git add .
 git commit -m "Initial release v1.0.0"
@@ -30,7 +30,7 @@ git commit -m "Initial release v1.0.0"
 Replace `YOUR_USERNAME` with your GitHub username:
 
 ```bat
-git remote add origin https://github.com/YOUR_USERNAME/onyxfpv-osd-tool.git
+git remote add origin https://github.com/YOUR_USERNAME/Digital-FPV-OSD-Tool.git
 git branch -M main
 git push -u origin main
 ```
@@ -51,7 +51,7 @@ git push origin v1.0.0
 Then on GitHub:
 1. Click **Releases** → **Draft a new release**
 2. **Tag:** `v1.0.0`
-3. **Title:** `OnyxFPV OSD Tool v1.0.0`
+3. **Title:** `VueOSD v1.0.0 — Digital FPV OSD Tool`
 4. **Description:** paste the section from README.md
 5. Attach the zip file as a release asset (optional — users can also clone)
 6. Click **Publish release**
@@ -86,11 +86,11 @@ git push
 ## 6. Update CREDITS.md
 
 Before publishing, update `CREDITS.md`:
-- Set your actual GitHub URL in place of `https://github.com/onyxfpv`
+- Set your actual GitHub URL in place of `https://github.com/wkumik`
 - Add yourself as the author
 
 ---
 
 ## 7. After publishing — update the README badge URLs
 
-In `README.md`, update any `github.com/onyxfpv` links to your actual username.
+In `README.md`, update any `github.com/wkumik` links as needed.

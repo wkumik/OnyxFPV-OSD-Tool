@@ -1,6 +1,6 @@
 <HTA:APPLICATION
   ID="oSplash"
-  APPLICATIONNAME="OnyxFPV OSD Tool"
+  APPLICATIONNAME="VueOSD"
   BORDER="none"
   CAPTION="no"
   SHOWINTASKBAR="yes"
@@ -13,7 +13,7 @@
 />
 <html>
 <head>
-<title>OnyxFPV OSD Tool</title>
+<title>VueOSD</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -82,8 +82,8 @@ body {
 <body>
 <div id="wrap">
   <div id="gif-box"><img id="gif" src="" /></div>
-  <div id="title">ONYXFPV</div>
-  <div id="sub">OSD TOOL</div>
+  <div id="title">VueOSD</div>
+  <div id="sub">DIGITAL FPV OSD TOOL</div>
   <div id="status">Starting&hellip;</div>
   <div id="track"><div id="fill"></div></div>
   <div id="border"></div>
@@ -105,7 +105,7 @@ document.getElementById('gif').src = gifUrl;
 
 var fso      = new ActiveXObject("Scripting.FileSystemObject");
 var shell    = new ActiveXObject("WScript.Shell");
-var sfPath   = shell.ExpandEnvironmentStrings("%TEMP%") + "\\onyxfpv_splash.txt";
+var sfPath   = shell.ExpandEnvironmentStrings("%TEMP%") + "\\vueosd_splash.txt";
 
 // ── Progress bar ─────────────────────────────────────────────────────────────
 var curProg = 0;

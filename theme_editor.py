@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 """
-theme_editor.py — Colour palette editor for OnyxFPV OSD Tool.
+theme_editor.py — Colour palette editor for VueOSD.
 
 Opens as a non-modal dialog.  Each colour token shows:
   • A clickable swatch  (opens native QColorDialog)
@@ -257,7 +257,7 @@ class PreviewStrip(QWidget):
             # text
             p.setPen(QPen(QColor(pal.get("text", "#cdd6f4"))))
             p.setFont(QFont("Segoe UI", 8))
-            p.drawText(x_off+154, 12, 60, 10, Qt.AlignmentFlag.AlignLeft, "OSD Tool")
+            p.drawText(x_off+154, 12, 60, 10, Qt.AlignmentFlag.AlignLeft, "VueOSD")
             p.setPen(QPen(QColor(pal.get("muted", "#6c7086"))))
             p.drawText(x_off+154, 26, 70, 10, Qt.AlignmentFlag.AlignLeft, "Ready")
 
@@ -289,7 +289,7 @@ class ThemeEditor(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Theme Editor — OnyxFPV OSD Tool")
+        self.setWindowTitle("Theme Editor — VueOSD")
         self.setMinimumSize(860, 640)
         self.resize(920, 720)
         self.setStyleSheet("""

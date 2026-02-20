@@ -1,10 +1,10 @@
-# OnyxFPV OSD Tool
+# VueOSD — Digital FPV OSD Tool
 
 Overlay MSP-OSD data onto FPV DVR video footage. Supports Betaflight, INAV and Ardupilot
 
 Reads `.osd` and `.srt` files recorded alongside your DVR video and renders the
 HUD elements directly onto the footage — frame-accurate, GPU-accelerated.
-![OnyxFPV_OSD-Tool](https://github.com/user-attachments/assets/6dc8ea3a-40e2-4e6a-b611-d0ffa0e82e6e)
+![VueOSD](https://github.com/user-attachments/assets/6dc8ea3a-40e2-4e6a-b611-d0ffa0e82e6e)
 
 ---
 
@@ -23,7 +23,7 @@ HUD elements directly onto the footage — frame-accurate, GPU-accelerated.
 
 ## Quick Start — Windows
 
-Double-click **`OnyxFPV OSD Tool.bat`**
+Double-click **`VueOSD.bat`**
 
 On first run it will:
 1. Install Python dependencies automatically
@@ -53,8 +53,8 @@ brew install ffmpeg            # macOS
 
 ## Build Standalone Executable
 
-**Windows** — run `build.bat` after first launch (produces `dist\OnyxFPVOSDTool.exe`)  
-**Linux/macOS** — run `./build.sh` (produces `dist/OnyxFPVOSDTool`)
+**Windows** — run `build.bat` after first launch (produces `dist\VueOSD.exe`)
+**Linux/macOS** — run `./build.sh` (produces `dist/VueOSD`)
 
 The resulting binary needs no Python installation on the target machine.
 Bundle it with `ffmpeg.exe` (Windows) or ensure `ffmpeg` is on PATH.

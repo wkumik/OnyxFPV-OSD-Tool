@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 """
 Animated splash screen — plays splash_anim.gif while the app (or installer) loads.
 """
@@ -187,14 +187,14 @@ class SplashScreen(QWidget):
         font_title.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4)
         p.setFont(font_title)
         p.setPen(TEXT_C)
-        p.drawText(QRectF(0, ty, W, 30), Qt.AlignmentFlag.AlignHCenter, "ONYXFPV")
+        p.drawText(QRectF(0, ty, W, 30), Qt.AlignmentFlag.AlignHCenter, "VueOSD")
 
         font_sub = QFont("Segoe UI", 8)
         font_sub.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 6)
         p.setFont(font_sub)
         p.setPen(SUB_C)
         p.drawText(QRectF(0, ty + 28, W, 18),
-                   Qt.AlignmentFlag.AlignHCenter, "OSD TOOL")
+                   Qt.AlignmentFlag.AlignHCenter, "DIGITAL FPV OSD TOOL")
 
         font_st = QFont("Segoe UI", 8)
         p.setFont(font_st)

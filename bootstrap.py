@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 import sys, os, subprocess, threading, shutil, traceback, time
 
 HERE    = os.path.dirname(os.path.abspath(__file__))
 PYTHON  = sys.executable
-SFPATH  = os.path.join(os.environ.get("TEMP", HERE), "onyxfpv_splash.txt")
+SFPATH  = os.path.join(os.environ.get("TEMP", HERE), "vueosd_splash.txt")
 
 
 def _show_error(msg):
@@ -12,7 +12,7 @@ def _show_error(msg):
         import tkinter as tk
         from tkinter import messagebox
         root = tk.Tk(); root.withdraw()
-        messagebox.showerror("OnyxFPV OSD Tool — Error", msg)
+        messagebox.showerror("VueOSD — Error", msg)
         root.destroy()
     except Exception:
         pass
@@ -125,7 +125,7 @@ def _run_with_splash():
 
     app = QApplication.instance() or QApplication(sys.argv)
     app.setStyle("Fusion")
-    app.setApplicationName("OnyxFPV OSD Tool")
+    app.setApplicationName("VueOSD")
 
     ico = os.path.join(HERE, "icon.png")
     if os.path.exists(ico):
@@ -135,7 +135,7 @@ def _run_with_splash():
         try:
             import ctypes
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-                "OnyxFPV.OSDTool.1")
+                "VueOSD.OSDTool.1")
         except Exception:
             pass
 
@@ -186,7 +186,7 @@ def _run_with_splash():
     app.processEvents()
 
     import types
-    mod = types.ModuleType("onyxfpv_main")
+    mod = types.ModuleType("vueosd_main")
     mod.__file__ = os.path.join(HERE, "main.py")
     with open(mod.__file__, encoding="utf-8") as fh:
         src = fh.read()
@@ -222,7 +222,7 @@ def main():
 
     except Exception:
         _hta_close()
-        _show_error("OnyxFPV OSD Tool failed to start:\n\n"
+        _show_error("VueOSD failed to start:\n\n"
                     + traceback.format_exc())
         sys.exit(1)
 

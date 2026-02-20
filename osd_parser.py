@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2025 OnyxFPV — https://github.com/onyxfpv
+# Copyright (c) 2024-2025 VueOSD — https://github.com/wkumik/Digital-FPV-OSD-Tool
 """
-osd_parser.py  –  Parse OnyxFPV .osd binary files.
+osd_parser.py  –  Parse VueOSD .osd binary files.
 
 FORMAT (confirmed from Ruby firmware source: rx_video_recording_data.cpp,
 function rx_video_recording_data_add_osd_frame):

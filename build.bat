@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
-title OnyxFPV OSD Tool - Build
+title VueOSD - Build
 
 echo ==============================================
-echo  OnyxFPV OSD Tool  -  Build standalone .exe
+echo  VueOSD  -  Build standalone .exe
 echo ==============================================
 echo.
 
@@ -25,18 +25,18 @@ echo Building...
 pyinstaller ^
     --onefile ^
     --windowed ^
-    --name "OnyxFPVOSDTool" ^
+    --name "VueOSD" ^
     --add-data "fonts;fonts" ^
     --add-data "icons;icons" ^
     --icon "icon.ico" ^
     main.py
 
 echo.
-if exist "dist\OnyxFPVOSDTool.exe" (
-    echo [SUCCESS] dist\OnyxFPVOSDTool.exe
+if exist "dist\VueOSD.exe" (
+    echo [SUCCESS] dist\VueOSD.exe
     echo.
-    echo Place ffmpeg.exe alongside OnyxFPVOSDTool.exe
-    echo Distribute dist\OnyxFPVOSDTool.exe -- no Python needed on target machine.
+    echo Place ffmpeg.exe alongside VueOSD.exe
+    echo Distribute dist\VueOSD.exe -- no Python needed on target machine.
 ) else (
     echo [ERROR] Build failed -- check output above.
 )
