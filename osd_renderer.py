@@ -41,6 +41,7 @@ class OsdRenderConfig:
     show_srt_bar:  bool  = True
     srt_text:      str   = ""
     srt_opacity:   float = 0.6   # SRT bar background opacity (0.0–1.0)
+    srt_scale:     float = 1.0   # SRT bar font/size multiplier (0.75–2.0)
     osd_offset_ms: int   = 0     # Manual sync offset (ms); applied to timestamp lookups
 
 
@@ -89,7 +90,7 @@ def render_osd_frame(
             out.paste(glyph, (px, py), glyph)
 
     if cfg.show_srt_bar and cfg.srt_text:
-        _draw_srt_bar(out, cfg.srt_text, opacity=cfg.srt_opacity)
+        _draw_srt_bar(out, cfg.srt_text, opacity=cfg.srt_opacity, scale=cfg.srt_scale)
 
     return out
 
@@ -115,18 +116,19 @@ def render_fallback(
             draw.text((px+1, py+1), label, font=pil_f, fill=(0,0,0,200))
             draw.text((px,   py  ), label, font=pil_f, fill=(255,255,0,220))
     if cfg.show_srt_bar and cfg.srt_text:
-        _draw_srt_bar(out, cfg.srt_text, opacity=cfg.srt_opacity)
+        _draw_srt_bar(out, cfg.srt_text, opacity=cfg.srt_opacity, scale=cfg.srt_scale)
     return out
 
 
-def _draw_srt_bar(img: "Image.Image", text: str, opacity: float = 0.6, _cache: dict = {}):
+def _draw_srt_bar(img: "Image.Image", text: str, opacity: float = 0.6,
+                  scale: float = 1.0, _cache: dict = {}):
     """Draw SRT status bar onto a PIL image. Font is cached across calls.
 
     Draws on a separate transparent overlay then alpha_composites onto img so
     the output pixels are always fully opaque (alpha=255).  This prevents the
     UI theme background from bleeding through in the preview widget.
     """
-    fsize = max(14, img.height // 42)
+    fsize = max(14, int(img.height // 42 * scale))
     if fsize not in _cache:
         try:    _cache[fsize] = PILFont.truetype("arial.ttf", fsize)
         except: _cache[fsize] = PILFont.load_default()
@@ -191,8 +193,8 @@ class OsdRenderer:
         # SRT bar cache: text → (y1, y2, x1, x2, src float32, alpha float32)
         self._srt_cache: dict[str, tuple] = {}
 
-        # PIL font for rendering SRT bar images
-        fsize = max(14, video_h // 42)
+        # PIL font for rendering SRT bar images (rebuilt when scale changes via cache key)
+        fsize = max(14, int(video_h // 42 * cfg.srt_scale))
         self._srt_fsize = fsize
         try:    self._srt_pil_font = PILFont.truetype("arial.ttf", fsize)
         except: self._srt_pil_font = PILFont.load_default()
@@ -220,12 +222,15 @@ class OsdRenderer:
 
     def _get_srt(self, text: str) -> tuple:
         """Return (y1, y2, x1, x2, src_f32 H×W×4, alpha_f32 H×W×1) for text."""
-        cache_key = (text, round(self.cfg.srt_opacity, 2))
+        cache_key = (text, round(self.cfg.srt_opacity, 2), round(self.cfg.srt_scale, 2))
         if cache_key not in self._srt_cache:
             opacity_byte = int(self.cfg.srt_opacity * 255)
             bar  = Image.new("RGBA", (self.w, self.h), (0, 0, 0, 0))
             draw = ImageDraw.Draw(bar)
-            fnt  = self._srt_pil_font
+            # Build a scaled font for this cache entry
+            fsize = max(14, int(self.h // 42 * self.cfg.srt_scale))
+            try:    fnt = PILFont.truetype("arial.ttf", fsize)
+            except: fnt = PILFont.load_default()
             bb   = draw.textbbox((0, 0), text, font=fnt)
             tw   = bb[2] - bb[0];  th = bb[3] - bb[1]
             pad  = 6;  margin = 10

@@ -79,6 +79,7 @@ class ProcessingConfig:
     offset_y:     int   = 0
     show_srt_bar:  bool  = True
     srt_opacity:   float = 0.6   # SRT bar background opacity
+    srt_scale:     float = 1.0   # SRT bar size multiplier (0.75–2.0)
     use_hw:        bool  = False
     bitrate_mbps:  float = None   # if set, use -b:v instead of -crf
     trim_start:    float = 0.0    # seconds, 0 = beginning
@@ -515,6 +516,7 @@ def _overlay_pipeline(
         scale       = config.scale,
         show_srt_bar= config.show_srt_bar,
         srt_opacity = config.srt_opacity,
+        srt_scale   = config.srt_scale,
     )
     renderer = OsdRenderer(width, height, font, render_cfg)
 
@@ -771,7 +773,7 @@ def _srt_only_pipeline(
             if srt_text:
                 img = Image.frombuffer("RGBA", (width, height), raw, "raw", "RGBA", 0, 1)
                 out = img.copy()
-                _draw_srt_bar(out, srt_text)
+                _draw_srt_bar(out, srt_text, opacity=config.srt_opacity, scale=config.srt_scale)
                 enc_proc.stdin.write(out.tobytes())
             else:
                 enc_proc.stdin.write(raw)

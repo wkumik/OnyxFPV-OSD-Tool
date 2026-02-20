@@ -966,6 +966,9 @@ class MainWindow(QMainWindow):
         self.srt_opacity_sl = LabeledSlider("Opacity", 10, 100, 60, "%")
         self.srt_opacity_sl.valueChanged.connect(self._refresh_preview)
 
+        self.srt_size_sl = LabeledSlider("Size", 75, 200, 100, "%")
+        self.srt_size_sl.valueChanged.connect(self._refresh_preview)
+
         note2 = QLabel("Radio signal, bitrate, GPS, altitude from .srt.\n"
                        "'No MAVLink telemetry' lines are hidden.")
         note2.setStyleSheet(f"color:{_T()['muted']};font-size:10px;")
@@ -973,6 +976,7 @@ class MainWindow(QMainWindow):
 
         srtgl.addWidget(self.srt_bar_check)
         srtgl.addWidget(self.srt_opacity_sl)
+        srtgl.addWidget(self.srt_size_sl)
         srtgl.addWidget(note2)
         ll.addWidget(srtg)
 
@@ -1980,6 +1984,7 @@ class MainWindow(QMainWindow):
             show_srt_bar = self.srt_bar_check.isChecked(),
             srt_text     = srt_text,
             srt_opacity  = self.srt_opacity_sl.value() / 100.0,
+            srt_scale    = self.srt_size_sl.value() / 100.0,
         )
         if self.font_obj and PIL_OK:
             return render_osd_frame(img, osd_frame, self.font_obj, cfg)
@@ -2311,6 +2316,7 @@ class MainWindow(QMainWindow):
             offset_y      = self.sl_y.value(),
             show_srt_bar  = self.srt_bar_check.isChecked(),
             srt_opacity   = self.srt_opacity_sl.value() / 100.0,
+            srt_scale     = self.srt_size_sl.value() / 100.0,
             use_hw        = self.hw_check.isChecked(),
             trim_start    = self.trim_sel.in_pct  * self.video_dur,
             trim_end      = self.trim_sel.out_pct * self.video_dur,
