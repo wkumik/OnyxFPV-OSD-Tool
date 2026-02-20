@@ -39,12 +39,25 @@ class TelemetryData:
     voltage_v:     Optional[float] = None
     gps_lat:       Optional[float] = None
     gps_lon:       Optional[float] = None
+    # Walksnail/Avatar-style fields
+    signal:        Optional[int]   = None
+    channel:       Optional[int]   = None
+    freq_mhz:      Optional[float] = None
+    sbat_v:        Optional[float] = None
+    gbat_v:        Optional[float] = None
+    delay_ms:      Optional[int]   = None
 
     def status_line(self) -> str:
         """Build a compact one-line status string for the bottom overlay bar."""
         parts = []
         if self.flight_time:
             parts.append(self.flight_time)
+        if self.signal is not None:
+            parts.append(f"Sig:{self.signal}")
+        if self.channel is not None:
+            parts.append(f"CH:{self.channel}")
+        if self.freq_mhz is not None:
+            parts.append(f"{self.freq_mhz:.0f}MHz")
         if self.radio1_dbm is not None:
             s = f"R1:{self.radio1_dbm:+d}dBm"
             if self.radio1_snr is not None:
@@ -55,14 +68,20 @@ class TelemetryData:
             if self.radio2_snr is not None:
                 s += f" {self.radio2_snr}SNR"
             parts.append(s)
-        if self.link_mbps is not None:
-            parts.append(f"{self.link_mbps:.1f}Mbps")
+        if self.sbat_v is not None:
+            parts.append(f"SBat:{self.sbat_v:.1f}V")
+        if self.gbat_v is not None:
+            parts.append(f"GBat:{self.gbat_v:.1f}V")
         if self.voltage_v is not None:
             parts.append(f"{self.voltage_v:.1f}V")
+        if self.delay_ms is not None:
+            parts.append(f"Latency:{self.delay_ms}ms")
+        if self.link_mbps is not None:
+            parts.append(f"{self.link_mbps:.1f}Mbps")
         if self.altitude_m is not None:
             parts.append(f"H:{self.altitude_m:.0f}m")
         if self.distance_m is not None:
-            parts.append(f"D:{self.distance_m:.0f}m")
+            parts.append(f"Dist:{self.distance_m:.0f}m")
         return "  ".join(parts)
 
 
@@ -99,12 +118,20 @@ _SKIP_RE    = re.compile(r"No MAVLink telemetry", re.IGNORECASE)
 _RADIO_RE   = re.compile(
     r"Radio\s+(\d+):\s*(-?\d+)\s*dBm(?:\s+(-?\d+)\s*SNR)?", re.IGNORECASE
 )
-_MBPS_RE    = re.compile(r"([\d.]+)\s*Mbps", re.IGNORECASE)
-_TIME_RE    = re.compile(r"^\s*(\d{2}):(\d{2})\b")
-_DIST_RE    = re.compile(r"D:\s*([\d.]+)\s*(m|ft)", re.IGNORECASE)
-_ALT_RE     = re.compile(r"H:\s*([\d.]+)\s*(m|ft)", re.IGNORECASE)
-_VOLT_RE    = re.compile(r"([\d.]+)\s*V\b")
-_GPS_RE     = re.compile(r"(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)")
+_MBPS_RE        = re.compile(r"(?:Bitrate:)?([\d.]+)\s*Mbps", re.IGNORECASE)
+_TIME_RE        = re.compile(r"^\s*(\d{2}):(\d{2})\b")
+_DIST_RE        = re.compile(r"(?:Distance|D):\s*([\d.]+)\s*(m|ft)", re.IGNORECASE)
+_ALT_RE         = re.compile(r"H:\s*([\d.]+)\s*(m|ft)", re.IGNORECASE)
+_VOLT_RE        = re.compile(r"([\d.]+)\s*V\b")
+_GPS_RE         = re.compile(r"(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)")
+# Walksnail/Avatar fields
+_SIGNAL_RE      = re.compile(r"Signal:(\d+)", re.IGNORECASE)
+_CHANNEL_RE     = re.compile(r"\bCH:(\d+)", re.IGNORECASE)
+_HZ_RE          = re.compile(r"\bHz:(\d+)", re.IGNORECASE)
+_FLIGHTTIME_RE  = re.compile(r"FlightTime:(\d+)", re.IGNORECASE)
+_SBAT_RE        = re.compile(r"SBat:([\d.]+)\s*V", re.IGNORECASE)
+_GBAT_RE        = re.compile(r"GBat:([\d.]+)\s*V", re.IGNORECASE)
+_DELAY_RE       = re.compile(r"Delay:(\d+)\s*ms", re.IGNORECASE)
 
 
 def _ft_to_m(ft: float) -> float:
@@ -122,6 +149,40 @@ def _parse_lines(lines: list[str]) -> TelemetryData:
         tm = _TIME_RE.match(line)
         if tm and not t.flight_time:
             t.flight_time = f"{tm.group(1)}:{tm.group(2)}"
+
+        # FlightTime:N  (seconds as integer, e.g. Walksnail)
+        ft = _FLIGHTTIME_RE.search(line)
+        if ft and not t.flight_time:
+            secs = int(ft.group(1))
+            t.flight_time = f"{secs // 60}:{secs % 60:02d}"
+
+        # Signal strength
+        sig = _SIGNAL_RE.search(line)
+        if sig:
+            t.signal = int(sig.group(1))
+
+        # RF channel
+        ch = _CHANNEL_RE.search(line)
+        if ch:
+            t.channel = int(ch.group(1))
+
+        # Frequency in kHz (field is labelled Hz but value is kHz) → store as MHz
+        hz = _HZ_RE.search(line)
+        if hz:
+            t.freq_mhz = int(hz.group(1)) / 1_000  # kHz → MHz
+
+        # Per-battery voltages (Walksnail SBat / GBat)
+        sbat = _SBAT_RE.search(line)
+        if sbat:
+            t.sbat_v = float(sbat.group(1))
+        gbat = _GBAT_RE.search(line)
+        if gbat:
+            t.gbat_v = float(gbat.group(1))
+
+        # Link delay
+        dly = _DELAY_RE.search(line)
+        if dly:
+            t.delay_ms = int(dly.group(1))
 
         # Radio interfaces
         for m in _RADIO_RE.finditer(line):
@@ -160,8 +221,8 @@ def _parse_lines(lines: list[str]) -> TelemetryData:
             t.gps_lat = float(gps.group(1))
             t.gps_lon = float(gps.group(2))
 
-        # Voltage (only if no GPS on same line to avoid false matches)
-        if not gps:
+        # Generic voltage — only if no SBat/GBat and no GPS on same line
+        if not sbat and not gbat and not gps:
             volt = _VOLT_RE.search(line)
             if volt:
                 t.voltage_v = float(volt.group(1))
