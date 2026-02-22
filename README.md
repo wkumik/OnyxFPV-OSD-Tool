@@ -1,6 +1,6 @@
 # VueOSD — Digital FPV OSD Tool
 
-Overlay MSP-OSD data onto FPV DVR video footage. Supports Betaflight, INAV, ArduPilot, BetaFPV P1 and Caddx Ascent.
+Overlay MSP-OSD data onto FPV DVR video footage. Supports Betaflight, INAV, ArduPilot, BetaFPV P1, Caddx Ascent, [Ruby FPV](https://rubyfpv.com/) and [Onyx FPV](https://onyxfpv.com/).
 
 Reads `.osd` and `.srt` files recorded alongside your DVR video and renders the
 HUD elements directly onto the footage — frame-accurate, GPU-accelerated.
