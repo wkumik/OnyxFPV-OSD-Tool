@@ -402,31 +402,41 @@ def process_video(
         codec_map   = {"libx264": hw_info["h264"], "libx265": hw_info["h265"]}
         encoder     = codec_map.get(config.codec, hw_info["h264"])
         enc_label   = f"{hw_info['name']} ({encoder})"
-        # GPU rate control — each encoder has a different "CRF equivalent":
-        #   NVENC: -rc:v vbr -cq X  (VBR + constant quality, X same scale as CRF)
-        #   VAAPI: -rc_mode VBR -qp X
-        #   AMF:   -rc cqp -qp_i X -qp_p X
-        #   QSV:   -global_quality X
-        #   -qp alone forces I-frame-only quality and produces huge files!
+        # GPU rate control — prefer bitrate (VBR) when config.bitrate_mbps is set
         if "nvenc" in encoder:
-            # NVENC CQ scale is shifted vs x264/x265 CRF.
-            # CQ 23 on NVENC ≈ CRF 14 in x264 (near-lossless, huge files).
-            # Apply +9 offset so the user's CRF slider maps to similar file sizes:
-            #   slider 23 → CQ 32, slider 28 → CQ 37, slider 18 → CQ 27
-            nvenc_cq = min(51, config.crf + 9)
-            quality_args = ["-rc:v", "vbr", "-cq", str(nvenc_cq),
-                            "-maxrate", "50M",
-                            "-bufsize", "100M"]
+            if config.bitrate_mbps:
+                quality_args = [
+                    "-rc:v", "vbr",
+                    "-b:v", f"{config.bitrate_mbps}M",
+                    "-maxrate", f"{config.bitrate_mbps * 1.5:.1f}M",
+                    "-bufsize", f"{config.bitrate_mbps * 2:.1f}M",
+                ]
+            else:
+                nvenc_cq = min(51, config.crf + 9)
+                quality_args = ["-rc:v", "vbr", "-cq", str(nvenc_cq),
+                                "-maxrate", "50M", "-bufsize", "100M"]
         elif "vaapi" in encoder:
-            quality_args = ["-rc_mode", "VBR", "-qp", str(config.crf)]
+            if config.bitrate_mbps:
+                quality_args = ["-rc_mode", "VBR", "-b:v", f"{config.bitrate_mbps}M"]
+            else:
+                quality_args = ["-rc_mode", "VBR", "-qp", str(config.crf)]
         elif "amf" in encoder:
-            quality_args = ["-rc", "cqp",
-                            "-qp_i", str(config.crf),
-                            "-qp_p", str(config.crf)]
+            if config.bitrate_mbps:
+                quality_args = ["-rc", "vbr_latency", "-b:v", f"{config.bitrate_mbps}M"]
+            else:
+                quality_args = ["-rc", "cqp",
+                                "-qp_i", str(config.crf),
+                                "-qp_p", str(config.crf)]
         elif "qsv" in encoder:
-            quality_args = ["-global_quality", str(config.crf)]
+            if config.bitrate_mbps:
+                quality_args = ["-b:v", f"{config.bitrate_mbps}M"]
+            else:
+                quality_args = ["-global_quality", str(config.crf)]
         else:
-            quality_args = ["-cq", str(config.crf)]
+            if config.bitrate_mbps:
+                quality_args = ["-b:v", f"{config.bitrate_mbps}M"]
+            else:
+                quality_args = ["-cq", str(config.crf)]
         preset_args = ["-preset", "p6"] if "nvenc" in encoder else \
                       (["-preset", "medium"] if "qsv" in encoder else [])
         # pix_fmt_args: for hardware encoders the filter_complex format= node
