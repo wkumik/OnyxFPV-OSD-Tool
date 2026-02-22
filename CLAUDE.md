@@ -67,10 +67,14 @@ main.py (PyQt6 GUI)
 
 **OSD parsing** (`osd_parser.py`): Binary format with timestamp-indexed frames; uses `bisect` for O(log n) frame lookup by video timestamp.
 
-**Font system** (`font_loader.py`): Supports multi-column HD font sheets. Fonts live in `fonts/` with prefixes: `BTFL_` (Betaflight), `INAV` (INAV), `ARDU_` (ArduPilot), `SNEAKY_FPV_QS_` (Quicksilver).
+**Font system** (`font_loader.py`): Supports multi-column HD font sheets. Fonts live in `fonts/` with prefixes: `BTFL_` (Betaflight), `INAV` (INAV), `ARDU_` (ArduPilot). Quicksilver is not supported.
 
 **Theme system** (`theme.py`): 16-color token system (backgrounds, surfaces, text, accent, status, borders). User overrides stored in `theme_custom.json` at runtime.
 
 **Bootstrap flow** (`bootstrap.py`): On Windows, re-launches as `pythonw.exe` to hide the console, creates a venv, installs requirements, and auto-installs FFmpeg via `winget`. Only runs when the packaged `.bat` launcher is used.
+
+**Firmware auto-detection** (`main.py` `_load_osd()`): Reads the 4-byte FC type tag from the OSD header (`BTFL` → Betaflight, `INAV` → INAV, `ARDU` → ArduPilot) and calls `_on_fw_changed()` directly. Unknown tags fall back to Betaflight. There is no firmware selector in the UI.
+
+**Preview placeholder** (`PreviewPanel`, `main.py`): When no video is loaded, draws a Quick Start panel using `QPainter` on a `QPixmap` sized to the actual widget dimensions. Includes a pixel-art heart and donation link at the bottom (hidden when the widget is too short). Click zones are stored in `self._donate_rects` and hit-tested in `mousePressEvent`/`mouseMoveEvent`.
 
 **Windows taskbar integration** (`main.py`): Sets `AppUserModelID` via ctypes for proper icon display.
