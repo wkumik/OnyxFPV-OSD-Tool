@@ -23,7 +23,7 @@ HUD elements directly onto the footage — frame-accurate, GPU-accelerated.
 - Trim, scale, offset, opacity controls
 - Live preview with scrubbing
 - Upscale to 1440p, 2.7K or 4K
-- CRF or target bitrate mode
+- Target bitrate encoding (auto-matched to source, 1–100 Mbit/s)
 - Light and dark theme with custom colour editor
 - UI scaling (100% – 175%)
 
