@@ -16,6 +16,8 @@ HUD elements directly onto the footage — frame-accurate, GPU-accelerated.
 - Firmware auto-detected from OSD file header
 - BetaFPV P1 embedded OSD support
 - Caddx Ascent OSD support
+- [Ruby FPV](https://rubyfpv.com/) support
+- [Onyx FPV](https://onyxfpv.com/) support
 - SRT telemetry bar (speed, altitude, satellites, signal)
 - GPU-accelerated encoding (NVIDIA NVENC, AMD AMF, Intel QSV)
 - Trim, scale, offset, opacity controls
